@@ -8,6 +8,7 @@ class Node(models.Model):
     NODE_TYPE: type
     NODE_NAME: name
     """
+    id = models.BigIntegerField(primary_key=True)
     geom = models.PointField(srid=4326)
     geom_dist = models.PointField(srid=900913, null=True, blank=True)
     name = models.TextField()

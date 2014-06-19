@@ -32,21 +32,22 @@ class Link(models.Model):
     LINK_TYPE: road type
     SPEED_LIMIT: speed limit
     """
+    id = models.BigIntegerField(primary_key=True)
     geom = models.LineStringField(srid=4326)
     geom_dist = models.LineStringField(srid=900913, null=True, blank=True)
-    beg_node_id = models.IntegerField()
-    end_node_id = models.IntegerField()
+    beg_node_id = models.BigIntegerField()
+    end_node_id = models.BigIntegerField()
     length = models.FloatField()
     name = models.TextField()
-    lane_count = models.IntegerField()
-    link_type = models.TextField()
-    speed_limit = models.IntegerField()
+    lane_count = models.IntegerField(null=True, blank=True)
+    link_type = models.TextField(null=True, blank=True)
+    speed_limit = models.IntegerField(null=True, blank=True)
 
     objects = models.GeoManager()
 
     # Returns the string representation of the model.
     def __unicode__(self):
-        return "%s (%s) Type: %s, Length: %7.1, Lanes: %g, Speed Limit: %g" % (self.name, self.id, self.link_type, self.length, self.lane_count, self.speed_limit)
+        return "%s (%s) Type: %s, Length: %7.1f, Lanes: %g, Speed Limit: %g" % (self.name, self.id, self.link_type, self.length, self.lane_count, self.speed_limit or 0.)
 
 class Trajectory(models.Model):
     oid = models.IntegerField(db_index=True)

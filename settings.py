@@ -19,7 +19,8 @@ INSTALLED_APPS = (
         'django.contrib.gis',
         'geomdb',
         'south',
-        'microsim'
+        'microsim',
+        'cell_data'
         )
 
 SECRET_KEY = '8lu*6g0lg)9z!ba+a$ehk)xt)x%rxgb$i1&amp;022shmi1jcgihb*'

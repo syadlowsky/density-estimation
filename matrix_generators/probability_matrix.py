@@ -1,20 +1,23 @@
-# TODO: import Tower, Link objects
+import os, sys
+import numpy as np
+from django.db import connection
 
-def area_in_region(tower_id, link_id):
-    tower = Tower.objects.get(id=tower_id)
-    link = Link.objects.get(id=link_id)
-    query = """
-    SELECT l.lane_count, ST_Length(ST_Intersection(l.geom_dist, t.geom_dist)), l.link_type
-    FROM orm_tower t, orm_link l
-    WHERE t.id = %s AND l.id = %s
-    """
+from sklearn.preprocessing import normalize
 
-def links_in_region(tower_id):
-    tower = Tower.objects.get(id=tower_id)
+def get_probabilities():
+    c = connection.cursor()
+
     query = """
-    SELECT el.index, l.lane_count, ST_Length(ST_Intersection(l.geom_dist, t.geom_dist)), l.link_type
-    FROM orm_tower t, orm_link l, orm_experimentlink el
-    WHERE t.id = %s AND ST_Intersects(l.geom, t.geom)
-    AND el.link_id = l.id
+    SELECT array(
+      (SELECT (CASE WHEN l.link_type='1' THEN 1.0 ELSE 0.5 END)*l.lane_count*ST_Length(ST_Intersection(l.geom_dist, t.geom_dist)) AS length
+       FROM cell_data_tower t
+       ORDER BY t.id)
+    ) AS cell_areas
+    FROM microsim_link l
+    ORDER BY l.id
     """
-    # (matrix_index, lane_count, length_in_region, type)
+    c.execute(query)
+    rows = [[x or 0.0 for x in r[0]] for r in c]
+
+    tower_to_link_matrix = np.array(rows) # column is a tower
+    return normalize(tower_to_link_matrix, 'l1', axis=0)

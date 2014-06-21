@@ -25,4 +25,4 @@ def get_counts_in_tower(start_time, interval):
 
     tower_counts = [r[0]/intervals for r in c]
     
-    return np.array([np.random.poisson(interval*count/3960.0) for count in tower_counts])
+    return np.array([np.random.poisson(interval*count/396.0) for count in tower_counts]) # off by a factor of 10 in denominator for efficiency

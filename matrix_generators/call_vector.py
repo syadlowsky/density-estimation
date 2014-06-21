@@ -14,12 +14,11 @@ def get_counts_in_tower(start_time, interval):
     intervals = float(c.fetchone()[0])
 
     query = """
-    SELECT COUNT(traj.oid)
+    SELECT (SELECT COUNT(traj.oid)
+    FROM mivehdetailedtrajectory traj
+    WHERE ST_Contains(tower.geom, traj.location)
+    AND traj.timesta >= %s AND traj.timesta <= %s)
     FROM cell_data_tower tower
-    LEFT OUTER JOIN mivehdetailedtrajectory traj
-    ON (ST_Contains(tower.geom, traj.location))
-    WHERE traj.timesta >= %s AND traj.timesta <= %s
-    GROUP BY tower.id
     ORDER BY tower.id
     """
     c.execute(query, (start_time, start_time+interval))

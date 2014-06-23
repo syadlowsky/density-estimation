@@ -1,4 +1,4 @@
-from matrix_generators import call_vector, shortest_paths_network_x, probability_matrix
+from matrix_generators import call_vector, shortest_paths_network_x, probability_matrix, density_vector
 import scipy.io as sio
 import numpy as np
 import math
@@ -6,37 +6,49 @@ import argparse
 
 ACCEPTED_LOG_LEVELS = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'WARN']
 
-parser = argparse.ArgumentParser(description='Find density estimates for links in a network.')
-parser.add_argument('--log', dest='log', nargs='?', const='INFO',
-                   default='WARN', help='Set log level (default: WARN)')
-parser.add_argument('--compute-matrices', '-m', dest='compute_dual_matrix',
-                   const=True, default=False, action='store_const',
-                   help='Compute the matrices needed to solve the dual problem instead of loading from file (default: False)')
-parser.add_argument('--simulate-calls', '-c', dest='simulate_calls',
-                   const=True, default=False, action='store_const',
-                   help='Simulate calls from microsim instead of loading from file (default: False)')
-parser.add_argument('--cross-validation', '-x', dest='cross_validation',
-                   const=True, default=False, action='store_const',
-                   help='Do cross validation on dual variables (default: False)')
-args = parser.parse_args()
+def configure_and_parse_arguments():
+    parser = argparse.ArgumentParser(description='Find density estimates for links in a network.')
+    parser.add_argument('--log', dest='log', nargs='?', const='INFO',
+                       default='WARN', help='Set log level (default: WARN)')
+    parser.add_argument('--compute-matrices', '-m', dest='compute_dual_matrix',
+                       const=True, default=False, action='store_const',
+                       help='Compute the matrices needed to solve the dual problem instead of loading from file (default: False)')
+    parser.add_argument('--simulate-calls', '-c', dest='simulate_calls',
+                       const=True, default=False, action='store_const',
+                       help='Simulate calls from microsim instead of loading from file (default: False)')
+    parser.add_argument('--cross-validation', '-x', dest='cross_validation',
+                       const=True, default=False, action='store_const',
+                       help='Do cross validation on dual variables (default: False)')
+    if args_set.log in ACCEPTED_LOG_LEVELS:
+        logging.basicConfig(level=eval('logging.'+args_set.log))
+
+    return args = parser.parse_args()
+
+def shortest_path_matrix():
+    shortest_path_matrix = shortest_paths_network_x.create_shortest_path_matrix()
+    return shortest_path_matrix
+
+def similarity_matrix(beta):
+    shortest_paths = shortest_path_matrix()
+    beta_type = getattr(self, "__iter__", None)
+    if callable(beta_type):
+        return (np.exp(-b*shortest_paths) for b in beta)
+    else:
+        return np.exp(-beta*shortest_paths)
+
+args = configure_and_parse_arguments()
 
 if args.simulate_calls:
+    c_true = density_vector.density_vector(26589.2, 300)
     y = call_vector.get_counts_in_tower(26589.2, 300)
-    c_true = matrix_generators.density_vector.density_vector(26589.2, 300)
     sio.savemat('data/y_vector.mat', {'y':y, 'c_true':c_true})
 else:
     y = sio.loadmat('data/y_vector.mat')
     c_true = y['c_true']
     y = np.squeeze(np.asarray(y['y']))
 
-def dual_matrices(beta):
-    shortest_path_matrix = shortest_paths_network_x.create_shortest_path_matrix()
-    Xi = np.exp(-beta*shortest_path_matrix)
-    shortest_path_matrix = None
-    return Xi
-
 if args.compute_dual_matrix:
-    Xi = dual_matrices(0.01)
+    Xi = similarity_matrix([0.001, 0.0031, 0.01, 0.031, 0.1, 0.31)
     P = probability_matrix.get_probabilities()
     alpha_to_c_map = Xi.dot(P)
     A = P.T.dot(alpha_to_c_map)
@@ -71,7 +83,11 @@ if args.cross_validation:
             average_norm_error += np.square(norm_error)
         print "Lambda:", reg, "Total error:", np.sqrt(average_norm_error)
 else:
-    A_inv = np.linalg.pinv(A)
-    alpha = A_inv.dot(y)
-    c_hat = alpha_to_c_map.dot(alpha)
-    print np.linalg.norm(c_hat - c_true, 2)
+    for (beta, xi) in Xi:
+        alpha_to_c_map = xi.dot(P)
+        A = P.T.dot(alpha_to_c_map)
+        A_inv = np.linalg.pinv(A)
+        alpha = A_inv.dot(y)
+        c_hat = alpha_to_c_map.dot(alpha)
+        r_squared = 1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.var(c_true))
+        print beta, "r^2:", r_squared

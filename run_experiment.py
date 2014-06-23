@@ -19,10 +19,11 @@ def configure_and_parse_arguments():
     parser.add_argument('--cross-validation', '-x', dest='cross_validation',
                        const=True, default=False, action='store_const',
                        help='Do cross validation on dual variables (default: False)')
-    if args_set.log in ACCEPTED_LOG_LEVELS:
-        logging.basicConfig(level=eval('logging.'+args_set.log))
+    args = parser.parse_args()
+    if args.log in ACCEPTED_LOG_LEVELS:
+        logging.basicConfig(level=eval('logging.'+args.log))
 
-    return parser.parse_args()
+    return args
 
 def shortest_path_matrix():
     shortest_path_matrix = shortest_paths_network_x.create_shortest_path_matrix()
@@ -30,7 +31,7 @@ def shortest_path_matrix():
 
 def similarity_matrix(beta):
     shortest_paths = shortest_path_matrix()
-    beta_type = getattr(self, "__iter__", None)
+    beta_type = getattr(beta, "__iter__", None)
     if callable(beta_type):
         return (np.exp(-b*shortest_paths) for b in beta)
     else:
@@ -48,7 +49,7 @@ else:
     y = np.squeeze(np.asarray(y['y']))
 
 if args.compute_dual_matrix:
-    Xi = similarity_matrix([0.001, 0.0031, 0.01, 0.031, 0.1, 0.31)
+    Xi = similarity_matrix([0.001, 0.0031, 0.01, 0.031, 0.1, 0.31])
     P = probability_matrix.get_probabilities()
     alpha_to_c_map = Xi.dot(P)
     A = P.T.dot(alpha_to_c_map)

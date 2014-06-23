@@ -84,7 +84,7 @@ if args.cross_validation:
         print "Lambda:", reg, "Total error:", np.sqrt(average_norm_error)
 else:
     for (beta, xi) in Xi:
-        for reg in xrange(0.0, 1.0, 0.1):
+        for reg in np.arange(0.0, 1.0, 0.1):
             alpha_to_c_map = xi.dot(P)
             A = P.T.dot(alpha_to_c_map)
             n = A.shape[0]

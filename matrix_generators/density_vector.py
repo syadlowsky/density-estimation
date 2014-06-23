@@ -32,6 +32,7 @@ def density_vector(start_time, interval):
     c.execute(query, (start_time, start_time+interval))
 
     link_counts = np.zeros(len(row_numbers.keys()))
-    for r in c:
-        link_counts[row_numbers[r[0]]] = r[1]
+    for link_id, count in c:
+        if link_id in row_numbers:
+            link_counts[row_numbers[link_id] - 1] = count
     return link_counts

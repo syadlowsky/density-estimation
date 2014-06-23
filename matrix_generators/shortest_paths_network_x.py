@@ -13,7 +13,7 @@ def create_shortest_path_matrix():
 
     print nx.is_strongly_connected(G)
 
-    sp = nx.all_pairs_dijkstra_path_length(G)
+    sp = nx.all_pairs_shortest_path_length(G)
     print sp.keys()[1:10]
 
     c.execute("SELECT ROW_NUMBER() OVER (ORDER BY id), beg_node_id, end_node_id FROM microsim_link")

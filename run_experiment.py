@@ -84,13 +84,14 @@ if args.cross_validation:
         print "Lambda:", reg, "Total error:", np.sqrt(average_norm_error)
 else:
     for (beta, xi) in Xi:
-        alpha_to_c_map = xi.dot(P)
-        A = P.T.dot(alpha_to_c_map)
-        n = A.shape[0]
-        train_mat = np.concatenate((A, reg*np.eye(n)))
-        train_target = np.concatenate((y, np.zeros(n)))
-        A_inv = np.linalg.pinv(A)
-        alpha = A_inv.dot(y)
-        c_hat = alpha_to_c_map.dot(alpha)
-        r_squared = 1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.square(np.linalg.norm(c_true, 2)))
-        print beta, "r^2:", r_squared
+        for reg in xrange(0.0, 1.0, 0.1):
+            alpha_to_c_map = xi.dot(P)
+            A = P.T.dot(alpha_to_c_map)
+            n = A.shape[0]
+            train_mat = np.concatenate((A, reg*np.eye(n)))
+            train_target = np.concatenate((y, np.zeros(n)))
+            A_inv = np.linalg.pinv(A)
+            alpha = A_inv.dot(y)
+            c_hat = alpha_to_c_map.dot(alpha)
+            r_squared = 1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.square(np.linalg.norm(c_true, 2)))
+            print beta, "r^2:", r_squared

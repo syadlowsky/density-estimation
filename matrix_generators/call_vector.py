@@ -1,10 +1,12 @@
 import os, sys
 import numpy as np
+import logging
 from django.db import connection
 
 def get_counts_in_tower(start_time, interval):
     c = connection.cursor()
 
+    logging.info("Counting time slices in interval given")
     query = """
     SELECT COUNT(DISTINCT traj.timesta)
     FROM mivehdetailedtrajectory traj
@@ -13,6 +15,7 @@ def get_counts_in_tower(start_time, interval):
     c.execute(query, (start_time, start_time+interval))
     intervals = float(c.fetchone()[0])
 
+    logging.info("Getting cars in each cell tower for interval")
     query = """
     SELECT (SELECT COUNT(traj.oid)
     FROM mivehdetailedtrajectory traj
@@ -25,4 +28,5 @@ def get_counts_in_tower(start_time, interval):
 
     tower_counts = [r[0]/intervals for r in c]
     
+    logging.info("Computing estimated number of calls made for that number of cars in a cell tower.")
     return np.array([np.random.poisson(interval*count/396.0) for count in tower_counts]) # off by a factor of 10 in denominator for efficiency

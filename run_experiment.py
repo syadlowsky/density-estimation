@@ -86,6 +86,9 @@ else:
     for (beta, xi) in Xi:
         alpha_to_c_map = xi.dot(P)
         A = P.T.dot(alpha_to_c_map)
+        n = A.shape[0]
+        train_mat = np.concatenate((A, reg*np.eye(n)))
+        train_target = np.concatenate((y, np.zeros(n)))
         A_inv = np.linalg.pinv(A)
         alpha = A_inv.dot(y)
         c_hat = alpha_to_c_map.dot(alpha)

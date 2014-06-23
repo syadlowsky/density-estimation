@@ -1,4 +1,5 @@
 from matrix_generators import call_vector, shortest_paths_network_x, probability_matrix, density_vector
+import logging
 import scipy.io as sio
 import numpy as np
 import math
@@ -33,7 +34,7 @@ def similarity_matrix(beta):
     shortest_paths = shortest_path_matrix()
     beta_type = getattr(beta, "__iter__", None)
     if callable(beta_type):
-        return (np.exp(-b*shortest_paths) for b in beta)
+        return ((b, np.exp(-b*shortest_paths)) for b in beta)
     else:
         return np.exp(-beta*shortest_paths)
 
@@ -51,8 +52,6 @@ else:
 if args.compute_dual_matrix:
     Xi = similarity_matrix([0.001, 0.0031, 0.01, 0.031, 0.1, 0.31])
     P = probability_matrix.get_probabilities()
-    alpha_to_c_map = Xi.dot(P)
-    A = P.T.dot(alpha_to_c_map)
 else:
     dual_matrices = sio.loadmat('data/kmatrix.mat')
     P = dual_matrices['p']
@@ -90,5 +89,5 @@ else:
         A_inv = np.linalg.pinv(A)
         alpha = A_inv.dot(y)
         c_hat = alpha_to_c_map.dot(alpha)
-        r_squared = 1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.var(c_true))
+        r_squared = 1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.square(np.norm(c_true, 2)))
         print beta, "r^2:", r_squared

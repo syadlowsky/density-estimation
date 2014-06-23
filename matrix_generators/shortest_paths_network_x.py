@@ -10,7 +10,7 @@ def create_shortest_path_matrix(weighted=False):
 
     logging.info("Loading graph to NetworkX from database...")
     c = connection.cursor()
-    c.execute("SELECT l.beg_node_id, l.end_node_id, l.length/l.lane_count AS resistance FROM microsim_link l")
+    c.execute("SELECT l.beg_node_id, l.end_node_id, (CASE WHEN l.link_type="3" THEN 0.0 WHEN l.link_type="4" THEN 0.0 ELSE l.length/l.lane_count END) AS resistance FROM microsim_link l")
     G.add_weighted_edges_from(c.fetchall())
 
     logging.debug("Road network is strongly connected: %s" % repr(nx.is_strongly_connected(G)))

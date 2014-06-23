@@ -22,7 +22,7 @@ def configure_and_parse_arguments():
     if args_set.log in ACCEPTED_LOG_LEVELS:
         logging.basicConfig(level=eval('logging.'+args_set.log))
 
-    return args = parser.parse_args()
+    return parser.parse_args()
 
 def shortest_path_matrix():
     shortest_path_matrix = shortest_paths_network_x.create_shortest_path_matrix()

@@ -34,7 +34,7 @@ def similarity_matrix(beta):
     shortest_paths = shortest_path_matrix()
     beta_type = getattr(beta, "__iter__", None)
     if callable(beta_type):
-        return ((b, np.exp(-b*shortest_paths)) for b in beta)
+        return ((b, np.exp(-b*np.square(shortest_paths))) for b in beta)
     else:
         return np.exp(-beta*shortest_paths)
 

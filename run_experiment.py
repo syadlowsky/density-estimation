@@ -14,7 +14,7 @@ def configure_and_parse_arguments():
     parser.add_argument('--compute-matrices', '-m', dest='compute_dual_matrix',
                        const=True, default=False, action='store_const',
                        help='Compute the matrices needed to solve the dual problem instead of loading from file (default: False)')
-    parser.add_argument('--compute-p-matrix', '-m', dest='compute_P_matrix',
+    parser.add_argument('--compute-p-matrix', '-p', dest='compute_P_matrix',
                        const=True, default=False, action='store_const',
                        help='Compute the matrices needed to solve the dual problem instead of loading from file (default: False)')
     parser.add_argument('--simulate-calls', '-c', dest='simulate_calls',

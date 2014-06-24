@@ -72,7 +72,7 @@ def main():
     uniform_points = uniform_dist(150)
     points_near_roads = gaussian_near_roads(250)
     all_points = np.vstack((points_near_roads, uniform_points))
-    sio.savemat('data/tower_locations.mat', {'towers':all_points})
+    #sio.savemat('data/tower_locations.mat', {'towers':all_points})
     plt.scatter(all_points[:,0], all_points[:,1])
     plt.scatter(uniform_points[:,0], uniform_points[:,1])
     plt.show()

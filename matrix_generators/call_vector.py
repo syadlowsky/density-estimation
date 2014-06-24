@@ -3,7 +3,7 @@ import numpy as np
 import logging
 from django.db import connection
 
-def get_counts_in_tower(start_time, interval):
+def get_counts_in_tower(start_time, interval, use_call_model=False):
     c = connection.cursor()
 
     logging.info("Counting time slices in interval given")
@@ -29,4 +29,7 @@ def get_counts_in_tower(start_time, interval):
     tower_counts = [r[0]/intervals for r in c]
     
     logging.info("Computing estimated number of calls made for that number of cars in a cell tower.")
-    return np.array([np.random.poisson(interval*count/396.0) for count in tower_counts]) # off by a factor of 10 in denominator for efficiency
+    if use_call_model:
+        return np.array([np.random.poisson(interval*count/396.0) for count in tower_counts]) # off by a factor of 10 in denominator for efficiency
+    else:
+        return np.array(tower_counts)

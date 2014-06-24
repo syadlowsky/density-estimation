@@ -52,19 +52,18 @@ else:
     c_true = y['c_true']
     y = np.squeeze(np.asarray(y['y']))
 
-if args.compute_dual_matrix:
-    Xi = similarity_matrix([0.001, 0.0031, 0.01, 0.031, 0.1, 0.31])
-else:
-    dual_matrices = sio.loadmat('data/kmatrix.mat')
-    Xi = dual_matrices['xi']
-    A = dual_matrices['k']
-    alpha_to_c_map = Xi.dot(P)
+dual_matrices = sio.loadmat('data/kmatrix.mat')
+Xi = dual_matrices['Xi']
+A = dual_matrices['A']
 
 if args.compute_P_matrix:
     P = probability_matrix.get_probabilities()
 else:
-    dual_matrices = sio.loadmat('data/kmatrix.mat')
     P = dual_matrices['P']
+if args.compute_dual_matrix:
+    Xi = similarity_matrix([0.001, 0.0031, 0.01, 0.031, 0.1, 0.31])
+
+sio.savemat('data/kmatrix.mat', {'Xi':Xi[0], 'P':P, 'A':P.T.dot(Xi[0].dot(P))})
 
 if args.cross_validation:
     print np.linalg.norm(y)

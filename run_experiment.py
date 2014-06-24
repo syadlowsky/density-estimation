@@ -2,10 +2,13 @@ from matrix_generators import call_vector, shortest_paths, probability_matrix, d
 import logging
 import scipy.io as sio
 import numpy as np
-import matplotlib.pyplot as plt
 import math
 import itertools
 import argparse
+
+import matplotlib as mpl
+mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 ACCEPTED_LOG_LEVELS = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'WARN']
 
@@ -76,4 +79,4 @@ for (beta, xi) in Xi:
         print "norm(c_hat):", np.linalg.norm(c_hat)
         print "norm(alpha):", np.linalg.norm(alpha)
         plt.plot(c_true, c_hat, 'x')
-        plt.show()
+        fig.savefig('temp.png')

@@ -3,6 +3,7 @@ import logging
 import scipy.io as sio
 import numpy as np
 import math
+import itertools
 import argparse
 
 ACCEPTED_LOG_LEVELS = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'WARN']
@@ -57,15 +58,13 @@ if args.compute_P_matrix:
     sio.savemat('data/pmatrix.mat', {'P':P})
 else:
     p_matrix = sio.loadmat('data/pmatrix.mat')
-    P = dual_matrices['P']
+    P = p_matrix['P']
 
 if args.compute_dual_matrix:
-    Xi = similarity_matrix([0.001, 0.0031, 0.01, 0.031, 0.1, 0.31])
-    sio.savemat('data/ximatrix.mat', {'Xi':np.array(Xi)})
+    Xi = similarity_matrix(np.exp(np.arange(-5., 5., 1.)))
 else:
-    dual_matrices = sio.loadmat('data/kmatrix.mat')
+    dual_matrices = sio.loadmat('data/ximatrix.mat')
     Xi = dual_matrices['Xi']
-    A = dual_matrices['A']
 
 if args.cross_validation:
     print np.linalg.norm(y)
@@ -98,10 +97,11 @@ else:
             n = A.shape[0]
             train_mat = np.concatenate((A, reg*np.eye(n)))
             train_target = np.concatenate((y, np.zeros(n)))
-            A_inv = np.linalg.pinv(A)
-            alpha = A_inv.dot(y)
-            c_hat = (300.0/396.0)*alpha_to_c_map.dot(alpha)*P.sum(axis=1)
-            r_squared = 1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.square(np.linalg.norm(c_true, 2)))
-            print beta, "r^2:", r_squared
+            A_inv = np.linalg.pinv(train_mat)
+            alpha = A_inv.dot(train_target)
+            print beta, np.linalg.norm(A.dot(alpha) - y)
+            c_hat = alpha_to_c_map.dot(alpha)*P.sum(axis=1)
+            r_squared = np.corrcoef(c_hat, c_true) #1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.square(np.linalg.norm(c_true, 2)))
+            print "r^2:", r_squared
             print np.linalg.norm(c_hat), np.linalg.norm(c_true)
             print np.linalg.norm(alpha)

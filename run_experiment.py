@@ -12,6 +12,8 @@ def configure_and_parse_arguments():
     parser = argparse.ArgumentParser(description='Find density estimates for links in a network.')
     parser.add_argument('--log', dest='log', nargs='?', const='INFO',
                        default='WARN', help='Set log level (default: WARN)')
+    parser.add_argument('--regularization', dest='regularization', nargs='?', const='(0.0, 1.0, 0.1)',
+                       default='WARN', help='Set log level (default: WARN)')
     parser.add_argument('--compute-matrices', '-m', dest='compute_dual_matrix',
                        const=True, default=False, action='store_const',
                        help='Compute the matrices needed to solve the dual problem instead of loading from file (default: False)')
@@ -55,7 +57,8 @@ else:
     Xi = dual_matrices['Xi']
 
 for (beta, xi) in Xi:
-    for reg in np.arange(0.0, 1.0, 0.1):
+    regularization_range = tuple([float(x.strip()) for x in args.regularization[1:-1].split(',')])
+    for reg in np.arange(*regularization_range):
         alpha_to_c_map = xi.dot(P)
         A = P.T.dot(alpha_to_c_map)
         n = A.shape[0]
@@ -65,7 +68,7 @@ for (beta, xi) in Xi:
         alpha = A_inv.dot(train_target)
         print beta, np.linalg.norm(A.dot(alpha) - y)
         c_hat = alpha_to_c_map.dot(alpha)*P.sum(axis=1)
-        r_squared = np.corrcoef(c_hat, c_true) #1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.square(np.linalg.norm(c_true, 2)))
-        print "r^2:", r_squared
+        r_squared = np.corrcoef(c_hat, c_true)
+        print "r^2:", r_squared[0,1]
         print np.linalg.norm(c_hat), np.linalg.norm(c_true)
         print np.linalg.norm(alpha)

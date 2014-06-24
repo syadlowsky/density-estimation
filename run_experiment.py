@@ -92,6 +92,8 @@ else:
             train_target = np.concatenate((y, np.zeros(n)))
             A_inv = np.linalg.pinv(A)
             alpha = A_inv.dot(y)
-            c_hat = alpha_to_c_map.dot(alpha)
+            c_hat = (300.0/396.0)*alpha_to_c_map.dot(alpha)*P.sum(axis=1)
             r_squared = 1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.square(np.linalg.norm(c_true, 2)))
             print beta, "r^2:", r_squared
+            print np.linalg.norm(c_hat), np.linalg.norm(c_true)
+            print np.linalg.norm(alpha)

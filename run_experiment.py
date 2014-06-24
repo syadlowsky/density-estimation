@@ -14,6 +14,9 @@ def configure_and_parse_arguments():
     parser.add_argument('--compute-matrices', '-m', dest='compute_dual_matrix',
                        const=True, default=False, action='store_const',
                        help='Compute the matrices needed to solve the dual problem instead of loading from file (default: False)')
+    parser.add_argument('--compute-p-matrix', '-m', dest='compute_P_matrix',
+                       const=True, default=False, action='store_const',
+                       help='Compute the matrices needed to solve the dual problem instead of loading from file (default: False)')
     parser.add_argument('--simulate-calls', '-c', dest='simulate_calls',
                        const=True, default=False, action='store_const',
                        help='Simulate calls from microsim instead of loading from file (default: False)')
@@ -51,13 +54,17 @@ else:
 
 if args.compute_dual_matrix:
     Xi = similarity_matrix([0.001, 0.0031, 0.01, 0.031, 0.1, 0.31])
-    P = probability_matrix.get_probabilities()
 else:
     dual_matrices = sio.loadmat('data/kmatrix.mat')
-    P = dual_matrices['p']
     Xi = dual_matrices['xi']
     A = dual_matrices['k']
     alpha_to_c_map = Xi.dot(P)
+
+if args.compute_P_matrix:
+    P = probability_matrix.get_probabilities()
+else:
+    dual_matrices = sio.loadmat('data/kmatrix.mat')
+    P = dual_matrices['P']
 
 if args.cross_validation:
     print np.linalg.norm(y)

@@ -13,7 +13,7 @@ def configure_and_parse_arguments():
     parser.add_argument('--log', dest='log', nargs='?', const='INFO',
                        default='WARN', help='Set log level (default: WARN)')
     parser.add_argument('--regularization', dest='regularization', nargs='?', const='(0.0, 1.0, 0.1)',
-                       default='WARN', help='Set log level (default: WARN)')
+                       default='(0.0)', help='Set log level (default: WARN)')
     parser.add_argument('--compute-matrices', '-m', dest='compute_dual_matrix',
                        const=True, default=False, action='store_const',
                        help='Compute the matrices needed to solve the dual problem instead of loading from file (default: False)')

@@ -79,4 +79,4 @@ for (beta, xi) in Xi:
         print "norm(c_hat):", np.linalg.norm(c_hat)
         print "norm(alpha):", np.linalg.norm(alpha)
         plt.plot(c_true, c_hat, 'x')
-        fig.savefig('temp.png')
+        fig.savefig('temp'+str(reg)+'.png')

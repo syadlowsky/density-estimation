@@ -1,4 +1,4 @@
-from matrix_generators import call_vector, shortest_paths_network_x, probability_matrix, density_vector
+from matrix_generators import call_vector, shortest_paths, probability_matrix, density_vector
 import logging
 import scipy.io as sio
 import numpy as np
@@ -30,18 +30,6 @@ def configure_and_parse_arguments():
 
     return args
 
-def shortest_path_matrix():
-    shortest_path_matrix = shortest_paths_network_x.create_shortest_path_matrix()
-    return shortest_path_matrix
-
-def similarity_matrix(beta):
-    shortest_paths = shortest_path_matrix()
-    beta_type = getattr(beta, "__iter__", None)
-    if callable(beta_type):
-        return ((b, np.exp(-b*np.square(shortest_paths))) for b in beta)
-    else:
-        return np.exp(-beta*shortest_paths)
-
 args = configure_and_parse_arguments()
 
 if args.simulate_calls:
@@ -61,47 +49,23 @@ else:
     P = p_matrix['P']
 
 if args.compute_dual_matrix:
-    Xi = similarity_matrix(np.exp(np.arange(-5., 5., 1.)))
+    Xi = shortest_paths.similarity_matrix(np.exp(np.arange(-5., 5., 1.)))
 else:
     dual_matrices = sio.loadmat('data/ximatrix.mat')
     Xi = dual_matrices['Xi']
 
-if args.cross_validation:
-    print np.linalg.norm(y)
-    n = A.shape[0]
-    for reg in np.arange(0.0, 1.0, 0.01):
-        indices = np.random.permutation(n)
-        hold_out_sets = np.array_split(indices, 10)
-        average_norm_error = 0.
-        for hold_out_set in hold_out_sets:
-            test_idx = indices[hold_out_set]
-            training_idx = np.delete(indices, hold_out_set)
-            training_A = A[training_idx, :]
-            training_y = y[training_idx]
-            test_A = A[test_idx, :]
-            test_y = y[test_idx]
-
-            train_mat = np.concatenate((training_A, reg*np.eye(n)))
-            train_target = np.concatenate((training_y, np.zeros(n)))
-            A_inv = np.linalg.pinv(train_mat)
-            alpha = A_inv.dot(train_target)
-            error = test_A.dot(alpha) - test_y
-            norm_error = np.linalg.norm(error,2)
-            average_norm_error += np.square(norm_error)
-        print "Lambda:", reg, "Total error:", np.sqrt(average_norm_error)
-else:
-    for (beta, xi) in Xi:
-        for reg in np.arange(0.0, 1.0, 0.1):
-            alpha_to_c_map = xi.dot(P)
-            A = P.T.dot(alpha_to_c_map)
-            n = A.shape[0]
-            train_mat = np.concatenate((A, reg*np.eye(n)))
-            train_target = np.concatenate((y, np.zeros(n)))
-            A_inv = np.linalg.pinv(train_mat)
-            alpha = A_inv.dot(train_target)
-            print beta, np.linalg.norm(A.dot(alpha) - y)
-            c_hat = alpha_to_c_map.dot(alpha)*P.sum(axis=1)
-            r_squared = np.corrcoef(c_hat, c_true) #1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.square(np.linalg.norm(c_true, 2)))
-            print "r^2:", r_squared
-            print np.linalg.norm(c_hat), np.linalg.norm(c_true)
-            print np.linalg.norm(alpha)
+for (beta, xi) in Xi:
+    for reg in np.arange(0.0, 1.0, 0.1):
+        alpha_to_c_map = xi.dot(P)
+        A = P.T.dot(alpha_to_c_map)
+        n = A.shape[0]
+        train_mat = np.concatenate((A, reg*np.eye(n)))
+        train_target = np.concatenate((y, np.zeros(n)))
+        A_inv = np.linalg.pinv(train_mat)
+        alpha = A_inv.dot(train_target)
+        print beta, np.linalg.norm(A.dot(alpha) - y)
+        c_hat = alpha_to_c_map.dot(alpha)*P.sum(axis=1)
+        r_squared = np.corrcoef(c_hat, c_true) #1. - (np.square(np.linalg.norm(c_hat - c_true, 2)) / np.square(np.linalg.norm(c_true, 2)))
+        print "r^2:", r_squared
+        print np.linalg.norm(c_hat), np.linalg.norm(c_true)
+        print np.linalg.norm(alpha)

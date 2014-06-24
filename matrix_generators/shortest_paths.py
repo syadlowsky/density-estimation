@@ -37,3 +37,11 @@ def create_shortest_path_matrix(weighted=False):
                 shortest_paths[row_idx - 1, col_idx - 1] = nodes[row_end_node]
     logging.info("Shortest path matrix complete.")
     return shortest_paths
+
+def similarity_matrix(beta):
+    shortest_paths = create_shortest_path_matrix()
+    beta_type = getattr(beta, "__iter__", None)
+    if callable(beta_type):
+        return ((b, np.exp(-b*np.square(shortest_paths))) for b in beta)
+    else:
+        return np.exp(-beta*shortest_paths)

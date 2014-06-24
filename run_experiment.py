@@ -66,9 +66,11 @@ for (beta, xi) in Xi:
         train_target = np.concatenate((y, np.zeros(n)))
         A_inv = np.linalg.pinv(train_mat)
         alpha = A_inv.dot(train_target)
-        print beta, np.linalg.norm(A.dot(alpha) - y)
+        print "Beta:", beta
+        print "A*alpha - y:", np.linalg.norm(A.dot(alpha) - y)
         c_hat = alpha_to_c_map.dot(alpha)*P.sum(axis=1)
         r_squared = np.corrcoef(c_hat, c_true)
-        print "r^2:", r_squared[0,1]
-        print np.linalg.norm(c_hat), np.linalg.norm(c_true)
-        print np.linalg.norm(alpha)
+        print "r^2(c_hat, c_true):", r_squared[0,1]
+        print "norm(c_true):", np.linalg.norm(c_true)
+        print "norm(c_hat):", np.linalg.norm(c_hat)
+        print "norm(alpha):", np.linalg.norm(alpha)

@@ -5,12 +5,15 @@ import networkx as nx
 import numpy as np
 import os, sys
 
-def create_shortest_path_matrix(weighted=False):
+def create_shortest_path_matrix(weighted=False, discount_highways=False):
     G = nx.DiGraph()
 
     logging.info("Loading graph to NetworkX from database...")
     c = connection.cursor()
-    c.execute("SELECT l.beg_node_id, l.end_node_id, l.length/l.lane_count AS resistance FROM microsim_link l")
+    if discount_highways:
+        c.execute("SELECT l.beg_node_id, l.end_node_id, (CASE WHEN l.link_type='1' THEN 0.5 WHEN l.link_type='2' THEN 0.5 ELSE 1.0 END) FROM microsim_link l")
+    else:
+        c.execute("SELECT l.beg_node_id, l.end_node_id, l.length/l.lane_count AS resistance FROM microsim_link l")
     G.add_weighted_edges_from(c.fetchall())
 
     logging.debug("Road network is strongly connected: %s" % repr(nx.is_strongly_connected(G)))
@@ -39,7 +42,7 @@ def create_shortest_path_matrix(weighted=False):
     return shortest_paths
 
 def similarity_matrix(beta):
-    shortest_paths = create_shortest_path_matrix()
+    shortest_paths = create_shortest_path_matrix(False, False)
     beta_type = getattr(beta, "__iter__", None)
     if callable(beta_type):
         return ((b, np.exp(-b*np.square(shortest_paths))) for b in beta)

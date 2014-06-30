@@ -23,13 +23,13 @@ def density_vector(start_time, interval):
     row_numbers = {x[0]: x[1] for x in c}
 
     query = """
-    SELECT traj.sectionId, COUNT(traj.oid)
+    SELECT traj.sectionId, COUNT(traj.oid, traj.timesta)
     FROM mivehdetailedtrajectory traj
-    WHERE traj.timesta >= 26589.2 AND traj.timesta <= 26589.2+300
     GROUP BY traj.sectionId                                           
     ORDER BY traj.sectionid;
     """
-    c.execute(query, (start_time, start_time+interval))
+    # WHERE traj.timesta >= %s AND traj.timesta <= %s
+    c.execute(query)#, (start_time, start_time+interval))
 
     link_counts = np.zeros(len(row_numbers.keys()))
     for link_id, count in c:

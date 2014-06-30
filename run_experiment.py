@@ -1,13 +1,15 @@
 from matrix_generators import call_vector, shortest_paths, probability_matrix, density_vector
+import string
 import logging
 import scipy.io as sio
+from scipy.optimize import nnls
 import numpy as np
 import math
 import itertools
 import argparse
 
 import matplotlib as mpl
-mpl.use('Agg')
+#mpl.use('Agg')
 import matplotlib.pyplot as plt
 
 ACCEPTED_LOG_LEVELS = ['CRITICAL', 'ERROR', 'WARNING', 'INFO', 'DEBUG', 'WARN']
@@ -42,41 +44,51 @@ if args.simulate_calls:
     c_true = density_vector.density_vector(26589.2, 300)
     y = call_vector.get_counts_in_tower(26589.2, 300)
     sio.savemat('data/y_vector.mat', {'y':y, 'c_true':c_true})
+    logging.info("Call vector and split vector saved")
 else:
-    y = sio.loadmat('data/y_vector.mat')
-    c_true = y['c_true']
+    y = sio.loadmat('data/y_vector_full.mat')
+    c_true = np.squeeze(np.asarray(y['c_true']))
     y = np.squeeze(np.asarray(y['y']))
 
 if args.compute_P_matrix:
-    P = probability_matrix.get_probabilities()
-    sio.savemat('data/pmatrix.mat', {'P':P})
+    P, R = probability_matrix.get_probabilities(c_true)
+    sio.savemat('data/pmatrix.mat', {'P':P, 'R':R})
 else:
     p_matrix = sio.loadmat('data/pmatrix.mat')
     P = p_matrix['P']
+    R = p_matrix['R']
 
 if args.compute_dual_matrix:
-    Xi = shortest_paths.similarity_matrix(np.exp(np.arange(-5., 5., 1.)))
+    Xi = shortest_paths.similarity_matrix(np.exp(np.array([-5., 15.])))
 else:
     dual_matrices = sio.loadmat('data/ximatrix.mat')
     Xi = dual_matrices['Xi']
 
 for (beta, xi) in Xi:
     regularization_range = tuple([float(x.strip()) for x in args.regularization[1:-1].split(',')])
+    alpha_to_c_map = xi.dot(P)
+    A = P.T.dot(alpha_to_c_map)
     for reg in np.arange(*regularization_range):
-        alpha_to_c_map = xi.dot(P)
-        A = P.T.dot(alpha_to_c_map)
+        fig_image = plt.figure()
+        plt.imshow(A, extent=[0, 1, 0, 1])
+        fig_image.savefig(string.replace('results/matrix_true_probabilities_shortest_path_beta'+str(beta)+'_reg'+str(reg), '.','_')+'.png')
+        plt.close(fig_image)
         n = A.shape[0]
         train_mat = np.concatenate((A, reg*np.eye(n)))
         train_target = np.concatenate((y, np.zeros(n)))
-        A_inv = np.linalg.pinv(train_mat)
-        alpha = A_inv.dot(train_target)
+        # A_inv = np.linalg.pinv(train_mat)
+        # alpha = A_inv.dot(train_target)
+        alpha, res = nnls(train_mat, train_target)
         print "Beta:", beta
-        print "A*alpha - y:", np.linalg.norm(A.dot(alpha) - y)
+        print "A*alpha - y:", np.linalg.norm(A.dot(alpha) - y) / np.linalg.norm(y)
         c_hat = alpha_to_c_map.dot(alpha)*P.sum(axis=1)
         r_squared = np.corrcoef(c_hat, c_true)
         print "r^2(c_hat, c_true):", r_squared[0,1]
+        sio.savemat('results/c_'+str(beta)+'_'+str(reg)+'.mat', {'c_hat':c_hat, 'c_true':c_true})
         print "norm(c_true):", np.linalg.norm(c_true)
         print "norm(c_hat):", np.linalg.norm(c_hat)
         print "norm(alpha):", np.linalg.norm(alpha)
-        plt.plot(c_true, c_hat, 'x')
-        fig.savefig('results/temp'+str(reg)+'.png')
+        fig = plt.figure()
+        plt.scatter(c_true, c_hat, marker='x')
+        fig.savefig(string.replace('results/true_probabilities_shortest_path_beta'+str(beta)+'_reg'+str(reg), '.','_')+'.png')
+        plt.close(fig)

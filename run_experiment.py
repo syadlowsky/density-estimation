@@ -46,7 +46,7 @@ if args.simulate_calls:
     sio.savemat('data/y_vector.mat', {'y':y, 'c_true':c_true})
     logging.info("Call vector and split vector saved")
 else:
-    y = sio.loadmat('data/y_vector_full.mat')
+    y = sio.loadmat('data/y_vector_full_2.mat')
     c_true = np.squeeze(np.asarray(y['c_true']))
     y = np.squeeze(np.asarray(y['y']))
 

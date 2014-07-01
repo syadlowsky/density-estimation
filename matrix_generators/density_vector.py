@@ -23,7 +23,7 @@ def density_vector(start_time, interval):
     row_numbers = {x[0]: x[1] for x in c}
 
     query = """
-    SELECT traj.sectionId, COUNT(traj.oid, traj.timesta)
+    SELECT traj.sectionId, COUNT(traj.*)
     FROM mivehdetailedtrajectory traj
     WHERE traj.timesta >= %s AND traj.timesta <= %s
     GROUP BY traj.sectionId                                           

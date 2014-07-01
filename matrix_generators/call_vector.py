@@ -17,14 +17,14 @@ def get_counts_in_tower(start_time, interval, use_call_model=False):
 
     logging.info("Getting cars in each cell tower for interval")
     query = """
-    SELECT (SELECT COUNT(traj.oid)
+    SELECT (SELECT COUNT(traj.*)
     FROM mivehdetailedtrajectory traj
     WHERE ST_Contains(tower.geom, traj.location)
     AND traj.timesta >= %s AND traj.timesta <= %s)
     FROM cell_data_tower tower
     ORDER BY tower.id
     """
-    c.execute(query)
+    c.execute(query, (start_time, start_time+interval))
 
     #tower_counts = [r[0]/intervals for r in c]
     tower_counts = [float(r[0]) for r in c]

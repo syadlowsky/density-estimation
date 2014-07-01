@@ -16,22 +16,15 @@ def get_counts_in_tower(start_time, interval, use_call_model=False):
     #intervals = float(c.fetchone()[0])
 
     logging.info("Getting cars in each cell tower for interval")
-    #query = """
-    #SELECT (SELECT COUNT(traj.oid)
-    #FROM mivehdetailedtrajectory traj
-    #WHERE ST_Contains(tower.geom, traj.location))
-    #FROM cell_data_tower tower
-    #ORDER BY tower.id
-    #"""
     query = """
-    SELECT COUNT(traj.oid, traj.timesta)
-    FROM cell_data_tower tower LEFT OUTER JOIN mivehdetailedtrajectory traj
-    ON ST_Contains(tower.geom, traj.location))
-    GROUP BY tower.id
+    SELECT (SELECT COUNT(traj.oid)
+    FROM mivehdetailedtrajectory traj
+    WHERE ST_Contains(tower.geom, traj.location)
+    AND traj.timesta >= %s AND traj.timesta <= %s)
+    FROM cell_data_tower tower
     ORDER BY tower.id
     """
-    #AND traj.timesta >= %s AND traj.timesta <= %s)
-    c.execute(query)#, (start_time, start_time+interval))
+    c.execute(query)
 
     #tower_counts = [r[0]/intervals for r in c]
     tower_counts = [float(r[0]) for r in c]
